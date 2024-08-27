@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "pybun"
+description = "The bun toolkit, packaged for Python"
+authors = ["ducdetronquito <guillaume.paulet@giome.fr>"]
+license = "The Unlicense"
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+
+[tool.poetry.group.dev.dependencies]
+wheel = "~0.44.0"
+ruff = "~0.6.2"
+pre-commit = "~3.8.0"
+twine = "^5.1.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

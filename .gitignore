@@ -1,0 +1,10 @@
+# Poetry virtualenv
+.venv
+
+# Ruff cache
+.ruff_cache
+
+# Wheel output directory
+dist/
+
+.env
