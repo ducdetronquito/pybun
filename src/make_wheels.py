@@ -1,4 +1,5 @@
 # pyright: basic
+import json
 import logging
 import os
 import sys
@@ -292,6 +293,17 @@ def get_release_archive(
     return release_archive
 
 
+def get_latest_bun_version() -> str:
+    with request.urlopen(
+        "https://api.github.com/repos/oven-sh/bun/releases/latest"
+    ) as response:
+        latest_tag = json.loads(response.read())["tag_name"]
+
+    latest_version = latest_tag.replace("bun-", "")
+
+    return latest_version
+
+
 def main():
     logging.getLogger("wheel").setLevel(logging.WARNING)
 
@@ -299,13 +311,15 @@ def main():
 
     bun_version: str = cli_args.bun_version
 
+    if bun_version == "latest":
+        bun_version = get_latest_bun_version()
+
     wheel_pre_release: str = cli_args.wheel_pre_release
     python_version = bun_version.replace("v", "")
     if wheel_pre_release:
         python_version = f"{python_version}.{wheel_pre_release}"
 
     disered_target_platforms = cli_args.platform or list_bun_target_platforms()
-
     bun_target_platforms = []
     for item in disered_target_platforms:
         bun_target_platform = parse_bun_target_platform(item)
