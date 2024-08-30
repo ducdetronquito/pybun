@@ -248,7 +248,7 @@ def get_cli_arg_parser() -> ArgumentParser:
     parser.add_argument(
         "--wheel-pre-release",
         default="",
-        help="Wheel pre-release, ex: alpha.1, alpha.1, etc...",
+        help="Wheel pre-release, ex: alpha1, alpha2, etc...",
     )
 
     return parser
