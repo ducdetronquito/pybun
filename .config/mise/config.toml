@@ -5,3 +5,8 @@ poetry = { version = "1.8", pyproject = "pyproject.toml" }
 [env]
 _.file = '../../.env'
 _.python.venv = { path = "../../.venv", create = false }
+
+
+[tasks.publish]
+description = 'Publish to PyPI'
+run = "poetry run twine upload dist/*"
