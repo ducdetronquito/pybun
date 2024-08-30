@@ -1,0 +1,37 @@
+name: "Publish"
+
+on:
+  workflow_dispatch:
+    inputs:
+      bun_version:
+        description: "Bun version"
+        required: true
+        type: string
+      wheel_pre_release:
+        description: "Wheel pre-release, ex: alpha1, alpha2, etc..."
+        type: string
+        default: ""
+
+jobs:
+  publish_wheels:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.3
+      - name: Install dev dependencies
+        run: poetry install
+
+      - name: Build the wheel
+        run: poetry run python src/make_wheels.py ${{ inputs.bun_version }} --wheel-pre-release=${{ inputs.wheel_pre_release }}
+
+      - name: Publish on PyPI
+        run: poetry run twine upload dist/*
+        env:
+          TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
