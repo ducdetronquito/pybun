@@ -109,6 +109,7 @@ class DistInfo:
 @dataclass(frozen=True, slots=True)
 class DistInfoMetadata:
     dist_info: DistInfo
+    bun_version: str
 
     def path(self) -> str:
         return f"{self.dist_info.path()}/METADATA"
@@ -118,7 +119,7 @@ class DistInfoMetadata:
             description = f.read()
 
         rows = [
-            "Metadata-Version: 2.1",
+            "Metadata-Version: 2.3",
             f"Name: {self.dist_info.name}",
             f"Version: {self.dist_info.version}",
             "Summary: Bun is an all-in-one toolkit for JavaScript and TypeScript apps.",
@@ -128,6 +129,8 @@ class DistInfoMetadata:
             "Project-URL: Homepage, https://bun.sh/",
             "Project-URL: Source Code, https://github.com/oven-sh/bun",
             "Project-URL: Bug Tracker, https://github.com/oven-sh/bun/issues",
+            f"Project-URL: Changelog, https://bun.sh/blog/bun-{self.bun_version}",
+            "Project-URL: Documentation, https://bun.sh/docs",
             "Requires-Python: ~=3.9",
             "",
             description,
@@ -182,12 +185,13 @@ class BunExecutable:
 
 @dataclass(frozen=True, slots=True)
 class Wheel:
-    version: str
+    python_version: str
+    bun_version: str
     python_target_platform: PythonTargetPlatform
     name = "pybun"
 
     def filename(self) -> str:
-        return f"{self.name}-{self.version}-{self.get_tag()}.whl"
+        return f"{self.name}-{self.python_version}-{self.get_tag()}.whl"
 
     def get_tag(self) -> str:
         return f"py3-none-{self.python_target_platform}"
@@ -195,8 +199,8 @@ class Wheel:
     def write(self, bun_executable: BunExecutable, output_dir: str) -> str:
         Path(output_dir).mkdir(exist_ok=True)
 
-        dist_info = DistInfo(self.name, self.version)
-        dist_info_metadata = DistInfoMetadata(dist_info)
+        dist_info = DistInfo(self.name, self.python_version)
+        dist_info_metadata = DistInfoMetadata(dist_info, self.bun_version)
         dist_info_wheel = DistInfoWheel(dist_info, self.get_tag())
 
         with open("assets/__main__.py", mode="rb") as file:
@@ -333,7 +337,7 @@ def main():
         )
 
         python_target_platform = get_maching_python_target_platform(bun_target_platform)
-        wheel_path = Wheel(python_version, python_target_platform).write(
+        wheel_path = Wheel(python_version, bun_version, python_target_platform).write(
             bun_executable, "dist/"
         )
 
