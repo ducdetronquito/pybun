@@ -1,11 +1,11 @@
 # pyright: basic
-import json
 import logging
 import os
 import sys
 from argparse import ArgumentParser
 from dataclasses import dataclass
 from hashlib import sha256
+from http.client import HTTPSConnection
 from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
@@ -310,12 +310,18 @@ def get_release_archive(
 
 
 def get_latest_bun_version() -> str:
-    with request.urlopen(
-        "https://api.github.com/repos/oven-sh/bun/releases/latest"
-    ) as response:
-        latest_tag = json.loads(response.read())["tag_name"]
+    host = "github.com"
+    conn = HTTPSConnection(host)
+    try:
+        conn.request("GET", "/oven-sh/bun/releases/latest", headers={"Host": host})
+        response = conn.getresponse()
+        location_header = response.headers["location"]
+    finally:
+        conn.close()
 
-    latest_version = latest_tag.replace("bun-", "")
+    latest_version = location_header.replace(
+        "https://github.com/oven-sh/bun/releases/tag/bun-", ""
+    )
 
     return latest_version
 
