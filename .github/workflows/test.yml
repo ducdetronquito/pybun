@@ -23,10 +23,36 @@ jobs:
       - name: Install dev dependencies
         run: poetry install
 
-      - name: Build linux x64 wheel
+      - name: Build the wheel
         run: poetry run python src/make_wheels.py latest --platform=linux-x64
 
-      - name: Instal the wheel
+      - name: Install the wheel
+        run: |
+          pip install --no-index --find-links $(pwd)/dist/ pybun
+
+      - name: Test installed wheel
+        run: |
+          python -m pybun --version
+
+  test-on-darwin-darwin-aarch64:
+    name: Test wheel on darwin aarch64
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.3
+      - name: Install dev dependencies
+        run: poetry install
+
+      - name: Build the wheel
+        run: poetry run python src/make_wheels.py latest --platform=darwin-aarch64
+
+      - name: Install the wheel
         run: |
           pip install --no-index --find-links $(pwd)/dist/ pybun
 
