@@ -86,9 +86,9 @@ def get_maching_python_target_platform(
 ) -> PythonTargetPlatform:
     match bun_target_platform:
         case "darwin-x64":
-            return "macosx_12_0_arm64"
-        case "darwin-aarch64":
             return "macosx_12_0_x86_64"
+        case "darwin-aarch64":
+            return "macosx_12_0_arm64"
         case "linux-aarch64":
             return "manylinux_2_17_aarch64.manylinux2014_aarch64.musllinux_1_1_aarch64"
         case "linux-x64":
