@@ -116,7 +116,7 @@ class DistInfoMetadata:
         return f"{self.dist_info.path()}/METADATA"
 
     def content(self) -> bytes:
-        with open("assets/README.md") as f:
+        with open("README.md") as f:
             description = f.read()
 
         rows = [
