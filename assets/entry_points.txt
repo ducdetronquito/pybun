@@ -1,0 +1,3 @@
+[console_scripts]
+bun = pybun.__main__:main
+pybun = pybun.__main__:main

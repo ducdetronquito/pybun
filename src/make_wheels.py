@@ -159,6 +159,20 @@ class DistInfoWheel:
 
 
 @dataclass(frozen=True, slots=True)
+class DistInfoEntrypoints:
+    dist_info: DistInfo
+
+    def path(self) -> str:
+        return f"{self.dist_info.path()}/entry_points.txt"
+
+    def content(self) -> bytes:
+        with open("assets/entry_points.txt", mode="rb") as file:
+            entry_points = file.read()
+
+        return entry_points
+
+
+@dataclass(frozen=True, slots=True)
 class BunExecutable:
     file_info: ZipInfo
     content: bytes
@@ -203,6 +217,7 @@ class Wheel:
         dist_info = DistInfo(self.name, self.python_version)
         dist_info_metadata = DistInfoMetadata(dist_info, self.bun_version)
         dist_info_wheel = DistInfoWheel(dist_info, self.get_tag())
+        dist_info_entrypoints = DistInfoEntrypoints(dist_info)
 
         with open("assets/__main__.py", mode="rb") as file:
             pybun_main = file.read()
@@ -210,6 +225,7 @@ class Wheel:
         files: list[tuple[str | ZipInfo, bytes]] = [
             (dist_info_metadata.path(), dist_info_metadata.content()),
             (dist_info_wheel.path(), dist_info_wheel.content()),
+            (dist_info_entrypoints.path(), dist_info_entrypoints.content()),
             ("pybun/__init__.py", b"\n"),
             ("pybun/__main__.py", pybun_main),
             (bun_executable.file_info, bun_executable.content),

@@ -8,10 +8,12 @@ The [pybun](https://pypi.org/project/pybun/) Python package redistributes the Bu
 Usage
 -----
 
-To run the Bun CLI from the command line, use:
+To run the Bun CLI from the command line, you can use:
 
 ```shell
-python -m pybun
+pybun --version
+bun --version
+python -m pybun --version
 ```
 
 To run the Bun CLI from a Python program, use `sys.executable` to locate the Python binary to invoke. For example:
