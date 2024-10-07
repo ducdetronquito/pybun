@@ -4,6 +4,7 @@
 
 
 [Bun](https://bun.sh/) is an all-in-one toolkit for JavaScript and TypeScript apps.
+
 The [pybun](https://pypi.org/project/pybun/) Python package redistributes the Bun executable so that it can be used as a dependency in your Python projects.
 
 
