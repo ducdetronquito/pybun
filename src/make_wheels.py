@@ -69,7 +69,7 @@ def parse_bun_target_platform(value: str) -> BunTargetPlatform | None:
             return None
 
 
-def list_bun_target_platforms() -> list[BunTargetPlatform]:
+def all_bun_target_platforms() -> list[BunTargetPlatform]:
     return ["darwin-x64", "darwin-aarch64", "linux-aarch64", "linux-x64", "windows-x64"]
 
 
@@ -200,13 +200,13 @@ class BunExecutable:
 
 @dataclass(frozen=True, slots=True)
 class Wheel:
-    python_version: str
+    pybun_version: str
     bun_version: str
     python_target_platform: PythonTargetPlatform
     name = "pybun"
 
     def filename(self) -> str:
-        return f"{self.name}-{self.python_version}-{self.get_tag()}.whl"
+        return f"{self.name}-{self.pybun_version}-{self.get_tag()}.whl"
 
     def get_tag(self) -> str:
         return f"py3-none-{self.python_target_platform}"
@@ -214,7 +214,7 @@ class Wheel:
     def write(self, bun_executable: BunExecutable, output_dir: str) -> str:
         Path(output_dir).mkdir(exist_ok=True)
 
-        dist_info = DistInfo(self.name, self.python_version)
+        dist_info = DistInfo(self.name, self.pybun_version)
         dist_info_metadata = DistInfoMetadata(dist_info, self.bun_version)
         dist_info_wheel = DistInfoWheel(dist_info, self.get_tag())
         dist_info_entrypoints = DistInfoEntrypoints(dist_info)
@@ -256,7 +256,7 @@ def get_cli_arg_parser() -> ArgumentParser:
     )
     parser.add_argument(
         "--platform",
-        choices=list_bun_target_platforms(),
+        choices=all_bun_target_platforms(),
         action="append",
         default=[],
         help="platform to build for, can be repeated to target multiple platform. If omitted all platform are targeted.",
@@ -326,6 +326,60 @@ def get_latest_bun_version() -> str:
     return latest_version
 
 
+def get_pybun_version(bun_version: str, wheel_pre_release: str) -> str:
+    pybun_version = bun_version.replace("v", "")
+    if wheel_pre_release:
+        pybun_version = f"{pybun_version}.{wheel_pre_release}"
+
+    return pybun_version
+
+
+def build_wheel(
+    bun_target_platform: BunTargetPlatform,
+    bun_version: str,
+    expected_release_hash: str,
+    wheel_pre_release: str,
+) -> None:
+    release_archive = get_release_archive(bun_version, bun_target_platform)
+
+    release_hash = sha256(release_archive).hexdigest()
+    if release_hash != expected_release_hash:
+        logger.error(
+            f"Release {bun_version} hash mismatch for platform {bun_target_platform}: expected={expected_release_hash}, found={release_hash}"
+        )
+        return sys.exit(1)
+
+    logger.info(
+        f"Release {bun_version} hash for platform {bun_target_platform} is {release_hash}"
+    )
+
+    bun_executable = BunExecutable.from_archive(release_archive, bun_target_platform)
+
+    python_target_platform = get_maching_python_target_platform(bun_target_platform)
+    pybun_version = get_pybun_version(bun_version, wheel_pre_release)
+    wheel_path = Wheel(pybun_version, bun_version, python_target_platform).write(
+        bun_executable, "dist/"
+    )
+
+    logger.info(f"Wheel has been generated: {wheel_path}")
+
+
+def parse_expected_target_platforms(platforms: list[str]) -> list[BunTargetPlatform]:
+    if not platforms:
+        return all_bun_target_platforms()
+
+    bun_target_platforms = list[BunTargetPlatform]()
+    for item in platforms:
+        bun_target_platform = parse_bun_target_platform(item)
+        if bun_target_platform is None:
+            logger.error(f"Bun target platform '{item}' does not exists")
+            return sys.exit(1)
+
+        bun_target_platforms.append(bun_target_platform)
+
+    return bun_target_platforms
+
+
 def main():
     logging.getLogger("wheel").setLevel(logging.WARNING)
 
@@ -337,47 +391,19 @@ def main():
         bun_version = get_latest_bun_version()
 
     wheel_pre_release: str = cli_args.wheel_pre_release
-    python_version = bun_version.replace("v", "")
-    if wheel_pre_release:
-        python_version = f"{python_version}.{wheel_pre_release}"
 
-    disered_target_platforms = cli_args.platform or list_bun_target_platforms()
-    bun_target_platforms = []
-    for item in disered_target_platforms:
-        bun_target_platform = parse_bun_target_platform(item)
-        if bun_target_platform is None:
-            logger.error(f"Bun target platform '{item}' does not exists")
-            return sys.exit(1)
-
-        bun_target_platforms.append(bun_target_platform)
+    bun_target_platforms = parse_expected_target_platforms(cli_args.platform)
 
     release_hashes = get_release_hashes(bun_version)
 
     for bun_target_platform in bun_target_platforms:
-        release_archive = get_release_archive(bun_version, bun_target_platform)
-
-        release_hash = sha256(release_archive).hexdigest()
         expected_release_hash = release_hashes[bun_target_platform]
-        if release_hash != expected_release_hash:
-            logger.error(
-                f"Release {bun_version} hash mismatch for platform {bun_target_platform}: expected={expected_release_hash}, found={release_hash}"
-            )
-            return sys.exit(1)
-
-        logger.info(
-            f"Release {bun_version} hash for platform {bun_target_platform} is {release_hash}"
+        build_wheel(
+            bun_target_platform=bun_target_platform,
+            bun_version=bun_version,
+            expected_release_hash=expected_release_hash,
+            wheel_pre_release=wheel_pre_release,
         )
-
-        bun_executable = BunExecutable.from_archive(
-            release_archive, bun_target_platform
-        )
-
-        python_target_platform = get_maching_python_target_platform(bun_target_platform)
-        wheel_path = Wheel(python_version, bun_version, python_target_platform).write(
-            bun_executable, "dist/"
-        )
-
-        logger.info(f"Wheel has been generated: {wheel_path}")
 
 
 if __name__ == "__main__":
