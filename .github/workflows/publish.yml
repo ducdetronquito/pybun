@@ -7,8 +7,8 @@ on:
         description: "Bun version"
         required: true
         type: string
-      wheel_pre_release:
-        description: "Wheel pre-release, ex: alpha1, alpha2, etc..."
+      pybun_version_suffix:
+        description: "Ex: alpha1, alpha2, post1, etc..."
         type: string
         default: ""
 
@@ -28,7 +28,7 @@ jobs:
         run: poetry install
 
       - name: Build the wheel
-        run: poetry run python src/make_wheels.py ${{ inputs.bun_version }} --wheel-pre-release=${{ inputs.wheel_pre_release }}
+        run: poetry run python src/make_wheels.py ${{ inputs.bun_version }} --pybun-version-suffix=${{ inputs.pybun_version_suffix }}
 
       - name: Publish on PyPI
         run: poetry run twine upload dist/*
