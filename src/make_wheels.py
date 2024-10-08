@@ -262,9 +262,9 @@ def get_cli_arg_parser() -> ArgumentParser:
         help="platform to build for, can be repeated to target multiple platform. If omitted all platform are targeted.",
     )
     parser.add_argument(
-        "--wheel-pre-release",
+        "--pybun-version-suffix",
         default="",
-        help="Wheel pre-release, ex: alpha1, alpha2, etc...",
+        help="Ex: alpha1, alpha2, post1, etc...",
     )
 
     return parser
@@ -326,10 +326,10 @@ def get_latest_bun_version() -> str:
     return latest_version
 
 
-def get_pybun_version(bun_version: str, wheel_pre_release: str) -> str:
+def get_pybun_version(bun_version: str, pybun_version_suffix: str) -> str:
     pybun_version = bun_version.replace("v", "")
-    if wheel_pre_release:
-        pybun_version = f"{pybun_version}.{wheel_pre_release}"
+    if pybun_version_suffix:
+        pybun_version = f"{pybun_version}.{pybun_version_suffix}"
 
     return pybun_version
 
@@ -337,8 +337,8 @@ def get_pybun_version(bun_version: str, wheel_pre_release: str) -> str:
 def build_wheel(
     bun_target_platform: BunTargetPlatform,
     bun_version: str,
+    pybun_version: str,
     expected_release_hash: str,
-    wheel_pre_release: str,
 ) -> None:
     release_archive = get_release_archive(bun_version, bun_target_platform)
 
@@ -356,7 +356,6 @@ def build_wheel(
     bun_executable = BunExecutable.from_archive(release_archive, bun_target_platform)
 
     python_target_platform = get_maching_python_target_platform(bun_target_platform)
-    pybun_version = get_pybun_version(bun_version, wheel_pre_release)
     wheel_path = Wheel(pybun_version, bun_version, python_target_platform).write(
         bun_executable, "dist/"
     )
@@ -390,19 +389,22 @@ def main():
     if bun_version == "latest":
         bun_version = get_latest_bun_version()
 
-    wheel_pre_release: str = cli_args.wheel_pre_release
+    pybun_version_suffix: str = cli_args.pybun_version_suffix
 
     bun_target_platforms = parse_expected_target_platforms(cli_args.platform)
 
     release_hashes = get_release_hashes(bun_version)
 
+    pybun_version = get_pybun_version(bun_version, pybun_version_suffix)
+
     for bun_target_platform in bun_target_platforms:
         expected_release_hash = release_hashes[bun_target_platform]
+
         build_wheel(
             bun_target_platform=bun_target_platform,
             bun_version=bun_version,
+            pybun_version=pybun_version,
             expected_release_hash=expected_release_hash,
-            wheel_pre_release=wheel_pre_release,
         )
 
 
