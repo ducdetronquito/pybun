@@ -59,3 +59,19 @@ jobs:
       - name: Test installed wheel
         run: |
           python -m pybun --version
+
+  test-passing-output:
+    name: Test passing optional output between steps
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set color
+        id: color-selector
+        run: echo "SELECTED_COLOR=green" >> "$GITHUB_OUTPUT"
+      - name: Get color
+        env:
+          SELECTED_COLOR: ${{ steps.color-selector.outputs.SELECTED_COLOR }}
+        run: echo "The selected color is $SELECTED_COLOR"
+      - name: Get car
+        env:
+          SELECTED_COLOR: ${{ steps.color-selector.outputs.SELECTED_CAR }}
+        run: echo "The selected color is $SELECTED_CAR"
