@@ -26,5 +26,5 @@ jobs:
         run: cat LATEST_UNRELEASED_BUN_VERSION.txt
       
       - name: We are up to date
-        if: ${{ hashFiles('LATEST_UNRELEASED_BUN_VERSION.txt') = '' }}
+        if: ${{ hashFiles('LATEST_UNRELEASED_BUN_VERSION.txt') == '' }}
         run: echo "We are up to date"
