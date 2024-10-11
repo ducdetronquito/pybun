@@ -5,12 +5,12 @@ import sys
 from argparse import ArgumentParser
 from dataclasses import dataclass
 from hashlib import sha256
-from http.client import HTTPSConnection
 from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 from urllib import request
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
+from utils import convert_bun_version_into_pybun_version, get_latest_bun_version
 
 from wheel.wheelfile import WheelFile
 
@@ -309,31 +309,6 @@ def get_release_archive(
     return release_archive
 
 
-def get_latest_bun_version() -> str:
-    host = "github.com"
-    conn = HTTPSConnection(host)
-    try:
-        conn.request("GET", "/oven-sh/bun/releases/latest", headers={"Host": host})
-        response = conn.getresponse()
-        location_header = response.headers["location"]
-    finally:
-        conn.close()
-
-    latest_version = location_header.replace(
-        "https://github.com/oven-sh/bun/releases/tag/bun-", ""
-    )
-
-    return latest_version
-
-
-def get_pybun_version(bun_version: str, pybun_version_suffix: str) -> str:
-    pybun_version = bun_version.replace("v", "")
-    if pybun_version_suffix:
-        pybun_version = f"{pybun_version}.{pybun_version_suffix}"
-
-    return pybun_version
-
-
 def build_wheel(
     bun_target_platform: BunTargetPlatform,
     bun_version: str,
@@ -395,7 +370,9 @@ def main():
 
     release_hashes = get_release_hashes(bun_version)
 
-    pybun_version = get_pybun_version(bun_version, pybun_version_suffix)
+    pybun_version = convert_bun_version_into_pybun_version(
+        bun_version, pybun_version_suffix
+    )
 
     for bun_target_platform in bun_target_platforms:
         expected_release_hash = release_hashes[bun_target_platform]
