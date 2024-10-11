@@ -19,7 +19,7 @@ jobs:
         run: poetry install
 
       - name: Get latest unreleased bun version
-        run: poetry run python src/get_unreleased_bun_version.py
+        run: poetry run python src/get_latest_unreleased_bun_version.py
 
       - name: We have an unreleased bun version
         if: ${{ hashFiles('LATEST_UNRELEASED_BUN_VERSION.txt') != '' }}
