@@ -1,4 +1,4 @@
-name: "Publish"
+name: "Manual release"
 
 on:
   workflow_dispatch:
@@ -13,7 +13,9 @@ on:
         default: ""
 
 jobs:
-  publish_wheels:
+  manual_release:
+    strategy:
+      fail-fast: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
