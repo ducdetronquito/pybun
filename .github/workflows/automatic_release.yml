@@ -13,13 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install poetry
-        uses: snok/install-poetry@v1
-        with:
-          version: 1.8.3
+      - uses: jdx/mise-action@v3
       - name: Install dev dependencies
         run: poetry install
 

@@ -1,6 +1,6 @@
 [tools]
-python = "3.12"
-poetry = { version = "1.8", pyproject = "pyproject.toml" }
+python = "3.14"
+poetry = { version = "2", pyproject = "pyproject.toml" }
 
 [env]
 _.file = ".env"
